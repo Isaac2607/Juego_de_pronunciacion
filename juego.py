@@ -10,6 +10,8 @@ niveles = {
     "difícil": ["réseau neuronal", "apprentissage automatique", "intelligence artificielle"]
 }
 
+INTENTOS_POR_PALABRA = 3   # -----------------------> Puedes cambiar el número de intentos
+
 def quitar_acentos(texto):
     return ''.join(
         c for c in unicodedata.normalize('NFD', texto)
@@ -39,33 +41,51 @@ def jugar(nivel):
         return
 
     puntuacion = 0
-    for _ in range(len(palabras)):
-        palabra_aleatoria = choice(palabras)
+
+    for palabra_aleatoria in palabras:
         print(f"\nPor favor, pronuncie la palabra: {palabra_aleatoria}")
-        palabra_reconocida = speech()
 
-        if quitar_acentos(palabra_aleatoria.lower()) == quitar_acentos(palabra_reconocida.lower()):
-            print("✅ ¡Eso es correcto!")
-            puntuacion += 1
-        else:
-            print(f"❌ Algo va mal. La palabra era: {palabra_aleatoria}")
-        time.sleep(2)
+        acierto = False
 
-    print(f"\n¡Se acabó el juego! Tu puntuación es: {puntuacion}/{len(palabras)}")
+        for intento in range(1, INTENTOS_POR_PALABRA + 1):
+            print(f"🔄 Intento {intento}/{INTENTOS_POR_PALABRA}")
+            palabra_reconocida = speech()
+
+            if quitar_acentos(palabra_aleatoria.lower()) == quitar_acentos(palabra_reconocida.lower()):
+                print("✅ ¡Correcto!")
+                puntuacion += 1
+                acierto = True
+                break
+            else:
+                print("❌ No coincide.")
+                if intento < INTENTOS_POR_PALABRA:
+                    print("Inténtalo de nuevo...\n")
+                time.sleep(1)
+
+        if not acierto:
+            print(f"❌ No lograste decir la palabra. La correcta era: {palabra_aleatoria}")
+
+        time.sleep(1)
+
+    print(f"\n🎉 ¡Se acabó el juego! Tu puntuación es: {puntuacion}/{len(palabras)}")
+
     if puntuacion >= 3:
-       print("Excelente, eres un maestro con las palabras")
+        print("Excelente, eres un maestro con las palabras.")
     elif puntuacion >= 2:
-        print("Buen hecho, pero podrias mejorar")
+        print("Buen hecho, pero podrías mejorar.")
     elif puntuacion >= 1:
-        print("Buen intento, pero aun tienes mucho por mejorar.")
-    elif puntuacion == 0:
-        print("Buen intento, pero aun tienes mucho por mejorar.")
+        print("Buen intento, pero aún tienes mucho por mejorar.")
+    else:
+        print("No te preocupes, ¡sigue practicando!")
+
 if __name__ == "__main__":
     nivel_seleccionado = input("Seleccione el nivel de dificultad (fácil/intermedio/difícil): ").lower()
-    # Normalizamos para que 'facil' coincida con 'fácil'
+
+    # Normalizamos para permitir "facil" = "fácil"
     nivel_normalizado = ""
     for clave in niveles.keys():
         if quitar_acentos(clave) == quitar_acentos(nivel_seleccionado):
             nivel_normalizado = clave
             break
+
     jugar(nivel_normalizado)
